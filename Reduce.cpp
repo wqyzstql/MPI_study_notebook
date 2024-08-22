@@ -1,4 +1,4 @@
-﻿#include <cstdio>
+#include <cstdio>
 #include <mpi.h>
 #include <cstring>
 #include <chrono>
@@ -11,13 +11,17 @@ double f(double x) {
 }
 
 int main() {
-    auto tstart = std::chrono::high_resolution_clock::now();
-    double a = 0, b = 1;
-    int n = 100000;
     int comm_sz, my_rank;
     MPI_Init(NULL, NULL);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    double a, b, Inia=-1, Inib=-1;
+    int n = 100000;
+    if(my_rank==0)
+        scanf_s("%lf%lf", &Inia, &Inib);
+    auto tstart = std::chrono::high_resolution_clock::now();
+    MPI_Allreduce(&Inia, &a, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(&Inib, &b, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
     double stride = 1.0 * (b - a) / n;
     double approx = (f(a) + f(b)) / 2;
     int step = n / comm_sz;
@@ -30,10 +34,6 @@ int main() {
     approx = approx * stride;
     double sum = 0;
     MPI_Reduce(&approx, &sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    //MPI_MAXLOC, Find the position of maxvalue. 
-    //MPI_MINLOC, same
-    //MPI_PROD, ALL Elements mul
-    
     if(my_rank == 0){
         printf("%.5lf\n", sum);
         auto tend = std::chrono::high_resolution_clock::now();
@@ -43,3 +43,4 @@ int main() {
     MPI_Finalize();
     return 0;
 }
+
