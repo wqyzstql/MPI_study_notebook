@@ -30,6 +30,10 @@ int main() {
     approx = approx * stride;
     double sum = 0;
     MPI_Reduce(&approx, &sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    //MPI_MAXLOC, Find the position of maxvalue. 
+    //MPI_MINLOC, same
+    //MPI_PROD, ALL Elements mul
+    
     if(my_rank == 0){
         printf("%.5lf\n", sum);
         auto tend = std::chrono::high_resolution_clock::now();
