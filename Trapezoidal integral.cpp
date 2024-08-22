@@ -1,4 +1,4 @@
-﻿#include <cstdio>
+#include <cstdio>
 #include <mpi.h>
 #include <cstring>
 #include <chrono>
@@ -19,6 +19,9 @@ int main() {
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     if (my_rank != 0) {
+        MPI_Recv(&a, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&b, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&n, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         double stride = 1.0 * (b - a) / n;
         double approx = (f(a) + f(b)) / 2;
         int step = n / (comm_sz - 1);
@@ -33,6 +36,12 @@ int main() {
         //printf("Thread %d is ok\n", my_rank);
     }
     else {
+        scanf_s("%lf%lf%d", &a, &b, &n);
+        for (int i = 1; i < comm_sz; i++) {
+            MPI_Send(&a, 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
+            MPI_Send(&b, 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
+            MPI_Send(&n, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+        }
         double sum = 0;
         for (int i = 1; i < comm_sz; i++) {
             double approx;
@@ -47,3 +56,4 @@ int main() {
     MPI_Finalize();
     return 0;
 }
+
